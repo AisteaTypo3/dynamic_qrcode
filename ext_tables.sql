@@ -30,10 +30,13 @@ CREATE TABLE tx_dynamicqrcode_domain_model_qrcode (
       logo_bg_radius smallint NOT NULL DEFAULT 8,
       logo_bg_padding smallint NOT NULL DEFAULT 4,
       rounded_modules tinyint(4) DEFAULT '0' NOT NULL,
+      eye_style varchar(20) DEFAULT 'square' NOT NULL,
       eye_radius int(11) DEFAULT '0' NOT NULL,
       dot_style varchar(20) DEFAULT 'square' NOT NULL,
       dot_intensity int(11) DEFAULT '5' NOT NULL,
       drop_shadow tinyint(1) NOT NULL DEFAULT 0,
+      preview_field text,
+      analytics_field text,
 
       PRIMARY KEY (uid),
       KEY parent (pid)
