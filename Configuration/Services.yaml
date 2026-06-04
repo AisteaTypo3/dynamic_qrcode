@@ -1,0 +1,30 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Vendor\DynamicQrcode\:
+    resource: '../Classes/*'
+
+  Vendor\DynamicQrcode\Form\Element\QrPreviewElement:
+    tags:
+      - name: formEngine.node
+        identifier: dynamicQrcodePreview
+        priority: 60
+
+  Vendor\DynamicQrcode\Form\Element\QrAnalyticsElement:
+    tags:
+      - name: formEngine.node
+        identifier: dynamicQrcodeAnalytics
+        priority: 60
+
+  Vendor\DynamicQrcode\Controller\ScanExportController:
+    public: true
+    tags:
+      - name: controller.service_arguments
+
+  Vendor\DynamicQrcode\Controller\LivePreviewController:
+    public: true
+    tags:
+      - name: controller.service_arguments

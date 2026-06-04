@@ -1,0 +1,7 @@
+plugin.tx_dynamicqrcode_qrcode {
+  view {
+    templateRootPaths.10 = EXT:dynamic_qrcode/Resources/Private/Templates/
+    layoutRootPaths.10 = EXT:dynamic_qrcode/Resources/Private/Layouts/
+    partialRootPaths.10 = EXT:dynamic_qrcode/Resources/Private/Partials/
+  }
+}

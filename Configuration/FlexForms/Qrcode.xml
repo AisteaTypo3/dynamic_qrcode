@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<T3DataStructure>
+  <sheets>
+    <sDEF>
+      <ROOT>
+        <TCEforms>
+          <sheetTitle>Settings</sheetTitle>
+        </TCEforms>
+        <el>
+          <settings.uid>
+            <TCEforms>
+              <label>QR-Code UID</label>
+              <config>
+                <type>input</type>
+                <eval>int</eval>
+              </config>
+            </TCEforms>
+          </settings.uid>
+        </el>
+      </ROOT>
+    </sDEF>
+  </sheets>
+</T3DataStructure>

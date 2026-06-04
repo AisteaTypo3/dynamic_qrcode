@@ -1,0 +1,16 @@
+{namespace f=TYPO3\CMS\Fluid\ViewHelpers}
+<f:layout name="Default" />
+<f:section name="Main">
+<f:if condition="{qr}">
+    <div style="display:flex;align-items:center;gap:20px">
+        <img src="{svgUrl}" alt="QR Code" width="300" height="300"/>
+        <div>
+            <h2>{qr.title}</h2>
+            <p><strong>Target:</strong> {qr.targetUrl}</p>
+            <p><a href="{svgUrl}&download=1">SVG herunterladen</a></p>
+        </div>
+    </div>
+<f:else>
+    <p>Kein QR-Code gefunden.</p>
+</f:if>
+</f:section>

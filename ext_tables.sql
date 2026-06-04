@@ -1,0 +1,61 @@
+CREATE TABLE tx_dynamicqrcode_domain_model_qrcode (
+      uid int(11) NOT NULL AUTO_INCREMENT,
+      pid int(11) DEFAULT '0' NOT NULL,
+      tstamp int(11) DEFAULT '0' NOT NULL,
+      crdate int(11) DEFAULT '0' NOT NULL,
+      cruser_id int(11) DEFAULT '0' NOT NULL,
+      deleted tinyint(4) DEFAULT '0' NOT NULL,
+      hidden tinyint(4) DEFAULT '0' NOT NULL,
+      starttime int(11) DEFAULT '0' NOT NULL,
+      endtime int(11) DEFAULT '0' NOT NULL,
+
+      title varchar(255) DEFAULT '' NOT NULL,
+      target_url text NOT NULL,
+      style_preset varchar(40) DEFAULT 'custom' NOT NULL,
+      scan_count int(11) DEFAULT '0' NOT NULL,
+      first_scan_at int(11) DEFAULT '0' NOT NULL,
+      last_scan_at int(11) DEFAULT '0' NOT NULL,
+      fg_color varchar(7) DEFAULT '#000000' NOT NULL,
+      fg_gradient_from varchar(7) NOT NULL DEFAULT '',
+      fg_gradient_to varchar(7) NOT NULL DEFAULT '',
+      fg_gradient_angle smallint NOT NULL DEFAULT 0,
+      bg_color varchar(7) DEFAULT '#FFFFFF' NOT NULL,
+      error_correction varchar(1) DEFAULT 'M' NOT NULL,
+      size int(11) DEFAULT '256' NOT NULL,
+      margin int(11) DEFAULT '2' NOT NULL,
+      logo_file varchar(500) DEFAULT '' NOT NULL,
+      logo_scale tinyint NOT NULL DEFAULT 30,
+      logo_bg tinyint(1) NOT NULL DEFAULT 0,
+      logo_bg_color varchar(7) NOT NULL DEFAULT '#FFFFFF',
+      logo_bg_radius smallint NOT NULL DEFAULT 8,
+      logo_bg_padding smallint NOT NULL DEFAULT 4,
+      rounded_modules tinyint(4) DEFAULT '0' NOT NULL,
+      eye_radius int(11) DEFAULT '0' NOT NULL,
+      dot_style varchar(20) DEFAULT 'square' NOT NULL,
+      dot_intensity int(11) DEFAULT '5' NOT NULL,
+      drop_shadow tinyint(1) NOT NULL DEFAULT 0,
+
+      PRIMARY KEY (uid),
+      KEY parent (pid)
+);
+
+CREATE TABLE tx_dynamicqrcode_domain_model_scan (
+      uid int(11) NOT NULL AUTO_INCREMENT,
+      pid int(11) DEFAULT '0' NOT NULL,
+      tstamp int(11) DEFAULT '0' NOT NULL,
+      crdate int(11) DEFAULT '0' NOT NULL,
+
+      qr_code int(11) DEFAULT '0' NOT NULL,
+      target_url text NOT NULL,
+      resolved_path varchar(255) DEFAULT '' NOT NULL,
+      site_host varchar(255) DEFAULT '' NOT NULL,
+      referer varchar(2048) DEFAULT '' NOT NULL,
+      user_agent varchar(1024) DEFAULT '' NOT NULL,
+      ip_hash varchar(64) DEFAULT '' NOT NULL,
+      is_bot tinyint(1) DEFAULT '0' NOT NULL,
+
+      PRIMARY KEY (uid),
+      KEY parent (pid),
+      KEY qr_code (qr_code),
+      KEY crdate (crdate)
+);
