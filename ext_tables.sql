@@ -56,9 +56,12 @@ CREATE TABLE tx_dynamicqrcode_domain_model_scan (
       user_agent varchar(1024) DEFAULT '' NOT NULL,
       ip_hash varchar(64) DEFAULT '' NOT NULL,
       is_bot tinyint(1) DEFAULT '0' NOT NULL,
+      is_excluded tinyint(1) DEFAULT '0' NOT NULL,
+      excluded_reason varchar(100) DEFAULT '' NOT NULL,
 
       PRIMARY KEY (uid),
       KEY parent (pid),
       KEY qr_code (qr_code),
-      KEY crdate (crdate)
+      KEY crdate (crdate),
+      KEY qr_code_crdate_excluded (qr_code, crdate, is_excluded)
 );

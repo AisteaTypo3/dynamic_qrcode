@@ -43,6 +43,7 @@ Das Kernprinzip lautet daher:
 - serverseitiges Scan-Tracking am Resolver
 - aggregierte Analytics direkt im QR-Datensatz
 - CSV-Export der Scan-Rohdaten
+- konfigurierbare Exclude-IP-Ranges fuer interne/VPN-Treffer
 - Live-Preview im Backend ohne Speichern
 - Style-Presets und manuelle Gestaltung
 - Dot-Styles, Eye-Styles, Verlauf, Logo, Shadow, Farben, Größe, Margin
@@ -74,9 +75,26 @@ Die Extension besteht im Wesentlichen aus sechs Bausteinen:
 - `LivePreview.js` verbindet Form-Felder und Preview live
 
 5. Analytics
-- `ScanTrackingService` schreibt Rohdaten und Aggregate
+- `ScanTrackingService` schreibt Rohdaten und aktualisiert Aggregate nur fuer nicht ausgeschlossene Treffer
 - `ScanAnalyticsService` berechnet Kennzahlen, Tagesverläufe, Referer und Unique-Scans
+- optional konfigurierte IP-Ranges werden als `excluded` markiert und in Analytics/CSV standardmaessig ausgefiltert
 - `QrAnalyticsElement` zeigt diese Daten direkt im Datensatz
+
+### Exclude-IP-Ranges konfigurieren
+
+In den Extension-Settings kann `excludeIpRanges` gepflegt werden. Erlaubt sind einzelne IPs und CIDR-Ranges, getrennt per Komma oder Semikolon. Optionale Gruppenlabels koennen als `label: wert` angegeben werden.
+
+Beispiel:
+
+```text
+mexico-office: 189.216.171.69; vpn: 203.0.113.0/24; 2001:db8::/32
+```
+
+Hinweise:
+
+- IPv4-Eintraege mit `/32` werden automatisch zu einer einzelnen IP normalisiert.
+- Doppelte Eintraege werden ignoriert.
+- Ungueltige IPs oder CIDR-Ranges werden still verworfen.
 
 6. Redirect-Synchronisierung
 - `DataHandlerHook` reagiert auf Änderungen am QR-Datensatz

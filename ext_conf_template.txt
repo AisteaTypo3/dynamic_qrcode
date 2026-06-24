@@ -1,0 +1,4 @@
+# cat=analytics/enable; type=text; label=Exclude IP ranges from analytics
+# Entries can be separated by comma or semicolon. Supports optional labels via
+# "label: value", plain IPs and CIDR ranges. Example: office: 203.0.113.10; vpn: 203.0.113.0/24
+excludeIpRanges =

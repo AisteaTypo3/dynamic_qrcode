@@ -13,7 +13,7 @@ final class ScanAnalyticsService
     public function buildForQrCode(int $qrCodeUid, string $range = '30d'): array
     {
         $range = $this->normalizeRange($range);
-        $rows = $this->fetchScanRows($qrCodeUid, $range);
+        $rows = $this->fetchScanRows($qrCodeUid, $range, false);
         $today = strtotime('today');
         $dailyCounts = [];
         $refererHosts = [];
@@ -22,6 +22,7 @@ final class ScanAnalyticsService
         $botScans = 0;
         $humanScans = 0;
         $uniqueKeys = [];
+        $excludedScanCount = $this->countExcludedScanRows($qrCodeUid, $range);
 
         foreach ($rows as $index => $row) {
             $timestamp = (int)$row['crdate'];
@@ -79,6 +80,7 @@ final class ScanAnalyticsService
             'uniqueScanCount' => count($uniqueKeys),
             'botScans' => $botScans,
             'humanScans' => $humanScans,
+            'excludedScanCount' => $excludedScanCount,
             'recentScans' => $latestScans,
             'dailySeries' => $dailySeries,
             'topReferers' => array_slice($refererHosts, 0, 5, true),
@@ -104,7 +106,9 @@ final class ScanAnalyticsService
                 'scan.referer',
                 'scan.user_agent',
                 'scan.ip_hash',
-                'scan.is_bot'
+                'scan.is_bot',
+                'scan.is_excluded',
+                'scan.excluded_reason'
             )
             ->from('tx_dynamicqrcode_domain_model_scan', 'scan')
             ->leftJoin(
@@ -117,6 +121,12 @@ final class ScanAnalyticsService
                 $queryBuilder->expr()->eq(
                     'scan.qr_code',
                     $queryBuilder->createNamedParameter($qrCodeUid, ParameterType::INTEGER)
+                )
+            )
+            ->andWhere(
+                $queryBuilder->expr()->eq(
+                    'scan.is_excluded',
+                    $queryBuilder->createNamedParameter(0, ParameterType::INTEGER)
                 )
             )
             ->orderBy('scan.crdate', 'DESC');
@@ -147,7 +157,7 @@ final class ScanAnalyticsService
         return in_array($range, ['7d', '30d', '90d', 'all'], true) ? $range : '30d';
     }
 
-    private function fetchScanRows(int $qrCodeUid, string $range): array
+    private function fetchScanRows(int $qrCodeUid, string $range, bool $includeExcluded): array
     {
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
             ->getQueryBuilderForTable('tx_dynamicqrcode_domain_model_scan');
@@ -163,6 +173,15 @@ final class ScanAnalyticsService
             )
             ->orderBy('crdate', 'DESC');
 
+        if (!$includeExcluded) {
+            $queryBuilder->andWhere(
+                $queryBuilder->expr()->eq(
+                    'is_excluded',
+                    $queryBuilder->createNamedParameter(0, ParameterType::INTEGER)
+                )
+            );
+        }
+
         $threshold = $this->resolveThreshold($range);
         if ($threshold !== null) {
             $queryBuilder->andWhere(
@@ -174,6 +193,40 @@ final class ScanAnalyticsService
         }
 
         return $queryBuilder->executeQuery()->fetchAllAssociative();
+    }
+
+    private function countExcludedScanRows(int $qrCodeUid, string $range): int
+    {
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('tx_dynamicqrcode_domain_model_scan');
+
+        $queryBuilder
+            ->count('uid')
+            ->from('tx_dynamicqrcode_domain_model_scan')
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'qr_code',
+                    $queryBuilder->createNamedParameter($qrCodeUid, ParameterType::INTEGER)
+                )
+            )
+            ->andWhere(
+                $queryBuilder->expr()->eq(
+                    'is_excluded',
+                    $queryBuilder->createNamedParameter(1, ParameterType::INTEGER)
+                )
+            );
+
+        $threshold = $this->resolveThreshold($range);
+        if ($threshold !== null) {
+            $queryBuilder->andWhere(
+                $queryBuilder->expr()->gte(
+                    'crdate',
+                    $queryBuilder->createNamedParameter($threshold, ParameterType::INTEGER)
+                )
+            );
+        }
+
+        return (int)$queryBuilder->executeQuery()->fetchOne();
     }
 
     private function resolveThreshold(string $range): ?int

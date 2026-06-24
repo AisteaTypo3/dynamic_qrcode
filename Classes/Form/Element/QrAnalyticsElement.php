@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Vendor\DynamicQrcode\Form\Element;
 
+use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Backend\Form\Element\AbstractFormElement;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use Vendor\DynamicQrcode\Service\ScanAnalyticsService;
+use Vendor\DynamicQrcode\Service\ScanTrackingService;
 
 final class QrAnalyticsElement extends AbstractFormElement
 {
@@ -24,17 +26,20 @@ final class QrAnalyticsElement extends AbstractFormElement
         }
 
         $analyticsService = GeneralUtility::makeInstance(ScanAnalyticsService::class);
+        $trackingService = GeneralUtility::makeInstance(ScanTrackingService::class);
         $analytics = $analyticsService->buildForQrCode($uid, $range);
         $exportUrl = (string)GeneralUtility::makeInstance(UriBuilder::class)->buildUriFromRoute(
             'dynamic_qrcode_export_scans',
             ['qrUid' => $uid, 'range' => $analytics['range']]
         );
+        $requestDiagnostics = $this->buildRequestDiagnostics($trackingService);
 
         $cards = [
             'Total scans' => (string)$analytics['scanCount'],
             'Unique scans (24h)' => (string)$analytics['uniqueScanCount'],
             'Human scans' => (string)$analytics['humanScans'],
             'Bot scans' => (string)$analytics['botScans'],
+            'Excluded scans' => (string)$analytics['excludedScanCount'],
             'First scan' => $this->formatTimestamp((int)($row['first_scan_at'] ?? 0)),
             'Last scan' => $this->formatTimestamp((int)($row['last_scan_at'] ?? 0)),
         ];
@@ -53,6 +58,10 @@ final class QrAnalyticsElement extends AbstractFormElement
         $html[] = '</div>';
 
         $html[] = '<div style="font-size:12px;color:#666;margin-bottom:12px">Unique scans werden als 24h-Heuristik auf Basis von gehashter IP und User-Agent berechnet.</div>';
+        $html[] = '<div style="font-size:12px;color:#666;margin-bottom:12px">Treffer aus konfigurierten Exclude-IP-Ranges werden hier standardmaessig nicht mitgezaehlt.</div>';
+        if ($requestDiagnostics !== '') {
+            $html[] = $requestDiagnostics;
+        }
 
         $html[] = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:18px">';
         foreach ($cards as $label => $value) {
@@ -137,5 +146,27 @@ final class QrAnalyticsElement extends AbstractFormElement
         $query['dqAnalyticsRange'] = $range;
 
         return $path . '?' . http_build_query($query);
+    }
+
+    private function buildRequestDiagnostics(ScanTrackingService $trackingService): string
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof ServerRequestInterface) {
+            return '';
+        }
+
+        $clientIp = $trackingService->resolveClientIpForDebug($request);
+        $excludedReason = $trackingService->resolveExcludedReasonForIp($clientIp);
+        $ranges = $trackingService->getConfiguredExcludedIpRanges();
+
+        $html = [];
+        $html[] = '<div class="alert alert-secondary" style="margin-bottom:12px">';
+        $html[] = '<strong>Current backend request diagnostic</strong><br>';
+        $html[] = 'Detected IP: ' . htmlspecialchars($clientIp !== '' ? $clientIp : '(none)') . '<br>';
+        $html[] = 'Configured ranges: ' . htmlspecialchars($ranges !== [] ? implode(', ', $ranges) : '(none)') . '<br>';
+        $html[] = 'Exclude match: ' . htmlspecialchars($excludedReason !== '' ? 'yes (' . $excludedReason . ')' : 'no');
+        $html[] = '</div>';
+
+        return implode('', $html);
     }
 }
